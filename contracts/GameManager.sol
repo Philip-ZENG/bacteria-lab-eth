@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-contract InvitePlayer {
+contract GameManager {
   /// Storagte Space ///
   // Define game world variables here
 

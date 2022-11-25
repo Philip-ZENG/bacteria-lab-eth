@@ -5,15 +5,5 @@ pragma solidity ^0.8.9;
 // For example, the population and resource moving
 
 library BacteriaLabColony {
-  struct Colony {
-    uint population;
-    uint maxPopulation;
-    uint nutrition;
-    uint maxNutrition;
-    uint movingSpeed;
-    uint defenceRate;
-    uint movingRadius;
-    uint256 position;
-    address owner;
-  }
+
 }
