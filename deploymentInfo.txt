@@ -1,0 +1,3 @@
+InvitePlayer Contract deployed in Goerli test network with address:
+0xC27b2B57685e648067026918A7BE6f9B4912A17e 
+0xda223E18FF160d6055Bc53a5AB47A3CDcFe0b31C
