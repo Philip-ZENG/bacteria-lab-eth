@@ -29,7 +29,9 @@ This `\eth` folder contains the code related to Ethereum.
   - go to `\eth` directory
   - run the following command  `ndoe compile.js`, smart contract code will be compiled
   - The compile process will generate smart contract ABI and bytecode
-
+  - `File import callback not supported` problem occurred during local compile using `solc`：
+    - https://ethereum.stackexchange.com/questions/103975/solc-compiler-file-import-callback-not-supported
+  
 - To run the tests,
   - go to `\eth` directory
   - run the following command `npm run test`

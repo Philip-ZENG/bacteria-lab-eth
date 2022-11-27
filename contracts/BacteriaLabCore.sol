@@ -8,8 +8,8 @@ import { BacteriaLabGameManager } from "./BacteriaLabGameManager.sol";
 contract BacteriaLabCore {
     /// Storagte Space ///
     // Define game world variables here
-    BacteriaLabGameManager.gameManagerType gameManager;
-    BacteriaLabGameManager.gameInitVarType gameInitVar;
+    BacteriaLabGameManager.gameManagerType public gameManager;
+    BacteriaLabGameManager.gameInitVarType public gameInitVar;
 
 
     /// Initializer ///
@@ -19,8 +19,8 @@ contract BacteriaLabCore {
 
         BacteriaLabGameManager.setGameInitVariable({
         gameInitVar: gameInitVar, 
-        mapWidth: 10,
-        mapLength: 10,
+        mapWidth: 3,
+        mapLength: 3,
         playerInitialNutrition: 100,
         colonyMaxAbsorptionRate: 20,
         colonyMaxDefenseNutrition: 50,
@@ -29,12 +29,16 @@ contract BacteriaLabCore {
         defenseNutritionRandomSeed: 37,
         occupyNutritionRandomSeed: 53
         });
-
     }
 
     /// Access Control ///
     modifier onlyAdmin() {
         require(msg.sender == gameManager.adminAddress, "Only admin can call this function");
+        _;
+    }
+
+    modifier managerIsInit() {
+        require(gameManager.isInit, "This function can only be called after game manager initialize");
         _;
     }
 
@@ -54,11 +58,12 @@ contract BacteriaLabCore {
     }
 
     /// GameManager Caller ///
+    // remix-pass, 
     function initializeGameManager() public onlyAdmin isNotStart {
         BacteriaLabGameManager._initializeGameManager(gameManager, gameInitVar);
     }
 
-    function enterGame() public isNotStart {
+    function enterGame() public isNotStart managerIsInit {
         require(gameManager.isPlayer[msg.sender] == false, "Palyer has already enter the game");
         BacteriaLabGameManager._enterGame(gameManager, gameInitVar);
     }
@@ -79,4 +84,30 @@ contract BacteriaLabCore {
         return BacteriaLabGameManager._pickWinner(gameManager);
     }
 
+    /// Getter Function ///
+    function getColonyInfo(uint colonyID) public view
+    returns(uint, uint, uint, uint, uint, bool) 
+    {
+        return(
+            gameManager.map[colonyID].id,
+            gameManager.map[colonyID].ownerID,
+            gameManager.map[colonyID].absorptionRate,
+            gameManager.map[colonyID].defenseNutrition,
+            gameManager.map[colonyID].occupyNutrition,
+            gameManager.map[colonyID].isOwned
+        );
+    }
+
+    function getPlayerInfo(uint playerID) public view
+    returns(uint, address, uint, uint, uint, uint)
+    {
+        return(
+            gameManager.playerList[playerID].id,
+            gameManager.playerList[playerID].playerAddress,
+            gameManager.playerList[playerID].nutrition,
+            gameManager.playerList[playerID].absorptionRate,
+            gameManager.playerList[playerID].color,
+            gameManager.playerList[playerID].colonyCount
+        );
+    }
 }

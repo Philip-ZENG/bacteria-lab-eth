@@ -4,20 +4,23 @@ const fs = require('fs-extra');
 // Require solidity compiler (with the version=0.8.9)
 const solc = require('solc');
 
+
 // Clear the build directory before each compilation
 const buildPath = path.resolve(__dirname, 'build');
 fs.removeSync(buildPath);
 
 // ! Get the path to the smart contract file that we want to compile
 // ! If want to compile another smart contract modify here
-const contractPath = path.resolve(__dirname,'contracts','InvitePlayer.sol');
+const contractPath = path.resolve(__dirname,'contract_for_compile','BacteriaLabCore.sol');
 // Read in the raw content of the smart contract file, utf8 is the encoding type
 const source = fs.readFileSync(contractPath, 'utf8');
+
+// console.log(source);
 
 const input = {
   language: 'Solidity',
   sources: {
-    'InvitePlayer.sol': {
+    'BacteriaLabCore.sol': {
       content: source,
     },
   },
@@ -37,7 +40,7 @@ const input = {
 // The exproted data is the bytecode and ABI
 
 const output = JSON.parse(solc.compile(JSON.stringify(input))).contracts[
-  "InvitePlayer.sol"
+  "BacteriaLabCore.sol"
 ];
 
 fs.ensureDirSync(buildPath);
