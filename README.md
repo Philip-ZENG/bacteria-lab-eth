@@ -31,6 +31,7 @@ This `\eth` folder contains the code related to Ethereum.
   - The compile process will generate smart contract ABI and bytecode
   - `File import callback not supported` problem occurred during local compile using `solc`：
     - https://ethereum.stackexchange.com/questions/103975/solc-compiler-file-import-callback-not-supported
+  - contract can be successfully deployed through Remix directly
   
 - To run the tests,
   - go to `\eth` directory
