@@ -11,11 +11,10 @@ contract BacteriaLabCore {
     BacteriaLabGameManager.gameManagerType public gameManager;
     BacteriaLabGameManager.gameInitVarType public gameInitVar;
 
-
     /// Initializer ///
     // Initializer function: executed when the contract is created
-    constructor() {
-        gameManager.adminAddress = msg.sender;
+    constructor(address creator) {
+        gameManager.adminAddress = creator;
 
         BacteriaLabGameManager.setGameInitVariable({
         gameInitVar: gameInitVar, 
@@ -37,6 +36,11 @@ contract BacteriaLabCore {
         _;
     }
 
+    modifier isPlayer() {
+        require(gameManager.isPlayer[msg.sender] == true, "Only player can call this function");
+        _;
+    }
+
     modifier managerIsInit() {
         require(gameManager.isInit, "This function can only be called after game manager initialize");
         _;
@@ -52,6 +56,11 @@ contract BacteriaLabCore {
         _;
     }
 
+    modifier isNotEnd() {
+        require(!gameManager.isEnd, "This function can only be called when game is not end");
+        _;
+    }
+
     modifier isEnd() {
         require(gameManager.isEnd, "This function can only be called after game ends");
         _;
@@ -63,7 +72,7 @@ contract BacteriaLabCore {
         BacteriaLabGameManager._initializeGameManager(gameManager, gameInitVar);
     }
 
-    function enterGame() public isNotStart managerIsInit {
+    function enterGame() public managerIsInit isStart{
         require(gameManager.isPlayer[msg.sender] == false, "Palyer has already enter the game");
         BacteriaLabGameManager._enterGame(gameManager, gameInitVar);
     }
@@ -82,6 +91,19 @@ contract BacteriaLabCore {
 
     function pickWinner() public onlyAdmin isEnd view returns(address) {
         return BacteriaLabGameManager._pickWinner(gameManager);
+    }
+
+    function attack(uint playerID, uint attackNutrition, uint targetColonyID) public isPlayer isStart isNotEnd {
+        require(msg.sender == gameManager.playerList[playerID].playerAddress);
+        require(gameManager.map[targetColonyID].isOwned, "You cannot attack a colony that has no owner");
+        uint enemyID = gameManager.map[targetColonyID].ownerID;
+        BacteriaLabPlayer._attack(gameManager.playerList[playerID], attackNutrition, gameManager.playerList[enemyID], gameManager.map[targetColonyID], gameManager.mapLength);
+    }
+
+    function occupy(uint playerID, uint targetColonyID) public isPlayer isStart isNotEnd {
+        require(msg.sender == gameManager.playerList[playerID].playerAddress);
+        require(!gameManager.map[targetColonyID].isOwned, "You cannot occupy a colony that has owner, you need to attack it before occupy it");
+        BacteriaLabPlayer._occupy(gameManager.playerList[playerID], gameManager.map[targetColonyID], gameManager.mapLength);
     }
 
     /// Getter Function ///

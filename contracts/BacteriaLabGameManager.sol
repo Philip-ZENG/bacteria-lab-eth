@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import { BacteriaLabColony } from "./BacteriaLabColony.sol";
 import { BacteriaLabPlayer } from "./BacteriaLabPlayer.sol";
+import { BacteriaLabNFT } from "./BacteriaLabNFT.sol";
 
 library BacteriaLabGameManager {
 
@@ -21,6 +22,7 @@ library BacteriaLabGameManager {
     mapping(uint => address) playerAddressList; // mapping from player id to player address
     mapping(address => bool) isPlayer;
     uint playerCount;
+    mapping(uint => BacteriaLabNFT.NFT) NFTCollection;
   }
 
   // for initialization purpose only
@@ -35,7 +37,6 @@ library BacteriaLabGameManager {
     uint COLONY_DEFENSE_NUTRITION_INIT_RANDOM_SEED;
     uint COLONY_OCCUPY_NUTRITION_INTI_RANDOM_SEED;
     mapping(uint => bool) colonyOwned; 
-    mapping(uint => uint) colonyOwnerIDMapping; // map colony id to owner id
   }
 
 
@@ -73,6 +74,7 @@ library BacteriaLabGameManager {
     gameManager.totalColonyCount = gameManager.mapWidth * gameManager.mapLength;
   }
 
+
   // Called by players who want to join the game
   function _enterGame(gameManagerType storage gameManager, gameInitVarType storage gameInitVar) public {
     uint playerID = gameManager.playerCount;
@@ -85,14 +87,18 @@ library BacteriaLabGameManager {
       initialColonyID += 1;
     }
     gameInitVar.colonyOwned[initialColonyID] = true;
-    gameInitVar.colonyOwnerIDMapping[initialColonyID] = gameManager.playerCount;
 
     gameManager.playerList[playerID].id = gameManager.playerCount;
     gameManager.playerList[playerID].playerAddress = msg.sender;
     gameManager.playerList[playerID].nutrition = gameInitVar.PLAYER_INITIAL_NUTRITION;
     gameManager.playerList[playerID].color = gameManager.playerCount;
-    gameManager.playerList[playerID].colonyIDList.push(initialColonyID);
     gameManager.playerList[playerID].colonyCount = 1;
+
+    changeNeighbor(gameManager, playerID, initialColonyID, gameManager.mapLength, true);
+
+    gameManager.map[initialColonyID].ownerID = playerID;
+    gameManager.map[initialColonyID].isOwned = true;
+    gameManager.playerList[playerID].absorptionRate += gameManager.map[initialColonyID].absorptionRate;
 
     gameManager.playerCount += 1;
   }
@@ -109,6 +115,28 @@ library BacteriaLabGameManager {
     return randomNumber;
   }
 
+  // Change neighbor of a colony used for player initialization
+  function changeNeighbor(gameManagerType storage gameManager, uint playerID, uint targetID, uint length, bool neighbor) private {
+
+    if(targetID % length == (length - 1)) {
+      gameManager.playerList[playerID].isNeighbor[targetID - 1] = neighbor;
+    }
+    else if(targetID % length == 0) {
+      gameManager.playerList[playerID].isNeighbor[targetID + 1] = neighbor;
+    }
+    else {
+      gameManager.playerList[playerID].isNeighbor[targetID + 1] = neighbor;
+      gameManager.playerList[playerID].isNeighbor[targetID - 1] = neighbor;
+    }
+    if(targetID < length) {
+      gameManager.playerList[playerID].isNeighbor[targetID + length] = neighbor;
+    }
+    else {
+      gameManager.playerList[playerID].isNeighbor[targetID + length] = neighbor;
+      gameManager.playerList[playerID].isNeighbor[targetID - length] = neighbor;
+    }
+  }
+
   // Called by the game admin when he want to start the game
   function _initializeGame(gameManagerType storage gameManager, gameInitVarType storage gameInitVar) public {
     gameManager.isStart = true;
@@ -118,16 +146,11 @@ library BacteriaLabGameManager {
       uint occupyNutrition = generateRandomNumber4(gameInitVar.COLONY_MAX_ABSORPTION_RATE, id, gameInitVar.COLONY_OCCUPY_NUTRITION_INTI_RANDOM_SEED);
 
       gameManager.map[id].id = id;
+      gameManager.map[id].ownerID = 0xffffffffffffffffffffffffffffffff;
       gameManager.map[id].absorptionRate = absorptionRate;
       gameManager.map[id].defenseNutrition = defenseNutrition;
       gameManager.map[id].occupyNutrition = occupyNutrition;
       gameManager.map[id].isOwned = gameInitVar.colonyOwned[id];
-
-      if(gameInitVar.colonyOwned[id]) {
-        uint ownerID = gameInitVar.colonyOwnerIDMapping[id];
-        gameManager.map[id].ownerID = ownerID;
-        gameManager.playerList[ownerID].absorptionRate += absorptionRate;
-      }
     }
   }
 
