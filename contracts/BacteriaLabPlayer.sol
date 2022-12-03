@@ -1,25 +1,31 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import {BacteriaLabColony} from"./BacteriaLabColony.sol";
+import {BacteriaLabColony} from "./BacteriaLabColony.sol";
 
 library BacteriaLabPlayer {
   struct Player {
-    uint id;
+    uint8 id;
     address playerAddress;
-    uint nutrition;
-    uint absorptionRate;
-    uint color;
-    uint colonyCount;
-    mapping (uint => bool) isNeighbor;
+    uint8 nutrition;
+    uint8 absorptionRate;
+    uint8 color;
+    uint8 colonyCount;
+    mapping (uint8 => bool) isNeighbor;
   }
 
-  function _attack(Player storage self, uint attackNutrition, Player storage enemy, BacteriaLabColony.Colony storage target, uint length) public{
+  function _attack(
+    Player storage self, 
+    uint8 attackNutrition, 
+    Player storage enemy, 
+    BacteriaLabColony.Colony storage target, 
+    uint8 length) 
+  public returns(bool) {
     require(attackNutrition <= self.nutrition, "Your attack nutrition cannot exceed the total nutrition you owned.");
     require(self.isNeighbor[target.id] == true, "You can only attack your neighbor colony.");
 
     bool succeed;
-    if(attackNutrition > target.defenseNutrition) {
+    if(attackNutrition >= target.defenseNutrition) {
       succeed = true;
     }
     else {
@@ -35,11 +41,13 @@ library BacteriaLabPlayer {
       enemy.absorptionRate-=target.absorptionRate;
 
       target.isOwned = false;
-      target.ownerID = 0xffffffffffffffffffffffffffffffff;
+      target.ownerID = 0xff;
     }
+
+    return succeed;
   }
 
-  function _occupy(Player storage self, BacteriaLabColony.Colony storage target, uint length) public{
+  function _occupy(Player storage self, BacteriaLabColony.Colony storage target, uint8 length) public returns (bool) {
     require(target.isOwned == false, "You can only occupy colony that has no owner.");
     require(self.isNeighbor[target.id] == true, "You can only occupy neighbor colony.");
 
@@ -63,9 +71,11 @@ library BacteriaLabPlayer {
       //change neighbor information
       changeNeighbor(self, target.id, length, true);
     }
+
+    return succeed;
   }
 
-  function changeNeighbor(Player storage player, uint targetID, uint length, bool neighbor) private {
+  function changeNeighbor(Player storage player, uint8 targetID, uint8 length, bool neighbor) private {
     if(targetID % length == (length - 1)) {
       player.isNeighbor[targetID - 1] = neighbor;
     }

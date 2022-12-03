@@ -6,11 +6,11 @@ pragma solidity ^0.8.9;
 
 library BacteriaLabColony {
   struct Colony {
-    uint id;
-    uint ownerID;
-    uint absorptionRate;
-    uint defenseNutrition;
-    uint occupyNutrition;
+    uint8 id;
+    uint8 ownerID;
+    uint8 absorptionRate;
+    uint8 defenseNutrition;
+    uint8 occupyNutrition;
     bool isOwned;
   }  
 }

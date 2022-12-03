@@ -5,14 +5,17 @@ import { BacteriaLabGameManager } from "./BacteriaLabGameManager.sol";
 
 library BacteriaLabNFT {
     struct NFT {
-        uint[] content;
+        // map tile index to color (the same as the id of tile owner)
+        mapping(uint8 => uint8) contentMap;
         address ownerAddress;
     }
 
-    function createNFT(BacteriaLabGameManager.gameManagerType storage gameManager, address ownerAddress, uint nftID) public {
+    function _createNFT(BacteriaLabGameManager.gameManagerType storage gameManager, address ownerAddress) public {
+        uint8 nftID = gameManager.NFTCount;
         gameManager.NFTCollection[nftID].ownerAddress = ownerAddress;
-        for (uint i = 0; i < gameManager.totalColonyCount; i++) {
-            gameManager.NFTCollection[nftID].content.push(gameManager.map[i].ownerID);
+        for (uint8 i = 0; i < gameManager.totalColonyCount; i++) {
+            gameManager.NFTCollection[nftID].contentMap[i]=gameManager.map[i].ownerID;
         }
+        gameManager.NFTCount += 1;
     }
 }
