@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import { BacteriaLabColony } from "./BacteriaLabColony.sol";
 import { BacteriaLabPlayer } from "./BacteriaLabPlayer.sol";
 import { BacteriaLabGameManager } from "./BacteriaLabGameManager.sol";
+import { BacteriaLabNFT } from "./BacteriaLabNFT.sol";
 
 contract BacteriaLabCore {
     /// Storagte Space ///
@@ -18,8 +19,8 @@ contract BacteriaLabCore {
 
         BacteriaLabGameManager.setGameInitVariable({
         gameInitVar: gameInitVar, 
-        mapWidth: 3,
-        mapLength: 3,
+        mapWidth: 8,
+        mapLength: 8,
         playerInitialNutrition: 100,
         colonyMaxAbsorptionRate: 20,
         colonyMaxDefenseNutrition: 50,
@@ -77,8 +78,12 @@ contract BacteriaLabCore {
         BacteriaLabGameManager._enterGame(gameManager, gameInitVar);
     }
 
-    function initializeGame() public onlyAdmin isNotStart {
-        BacteriaLabGameManager._initializeGame(gameManager, gameInitVar);
+    function initializeGame(uint8 startID) public onlyAdmin isNotStart {
+        BacteriaLabGameManager._initializeGame(gameManager, gameInitVar, startID);
+    }
+
+    function startGame() public onlyAdmin isNotStart {
+        gameManager.isStart = true;
     }
 
     function updateState() public onlyAdmin isStart {
@@ -93,22 +98,34 @@ contract BacteriaLabCore {
         return BacteriaLabGameManager._pickWinner(gameManager);
     }
 
-    function attack(uint playerID, uint attackNutrition, uint targetColonyID) public isPlayer isStart isNotEnd {
+    function attack(uint8 playerID, uint8 attackNutrition, uint8 targetColonyID) public isPlayer isStart isNotEnd {
         require(msg.sender == gameManager.playerList[playerID].playerAddress);
         require(gameManager.map[targetColonyID].isOwned, "You cannot attack a colony that has no owner");
-        uint enemyID = gameManager.map[targetColonyID].ownerID;
-        BacteriaLabPlayer._attack(gameManager.playerList[playerID], attackNutrition, gameManager.playerList[enemyID], gameManager.map[targetColonyID], gameManager.mapLength);
+        uint8 enemyID = gameManager.map[targetColonyID].ownerID;
+        bool succeed = BacteriaLabPlayer._attack(gameManager.playerList[playerID], attackNutrition, gameManager.playerList[enemyID], gameManager.map[targetColonyID], gameManager.mapLength);
+        if(succeed) {
+            // Successful attack turn the colony from owned status to non-owned status
+            gameManager.colonyOwned[targetColonyID] = false;
+        }
     }
 
-    function occupy(uint playerID, uint targetColonyID) public isPlayer isStart isNotEnd {
+    function occupy(uint8 playerID, uint8 targetColonyID) public isPlayer isStart isNotEnd {
         require(msg.sender == gameManager.playerList[playerID].playerAddress);
         require(!gameManager.map[targetColonyID].isOwned, "You cannot occupy a colony that has owner, you need to attack it before occupy it");
-        BacteriaLabPlayer._occupy(gameManager.playerList[playerID], gameManager.map[targetColonyID], gameManager.mapLength);
+        bool succeed = BacteriaLabPlayer._occupy(gameManager.playerList[playerID], gameManager.map[targetColonyID], gameManager.mapLength);
+        if(succeed) {
+            // Successful occupy turn colony from non-owned state to owned state
+            gameManager.colonyOwned[targetColonyID] = true;
+        }
+    }
+
+    function createNFT(address ownerAddress) public {
+        BacteriaLabNFT._createNFT(gameManager, ownerAddress);
     }
 
     /// Getter Function ///
-    function getColonyInfo(uint colonyID) public view
-    returns(uint, uint, uint, uint, uint, bool) 
+    function getColonyInfo(uint8 colonyID) public view
+    returns(uint8, uint8, uint8, uint8, uint8, bool) 
     {
         return(
             gameManager.map[colonyID].id,
@@ -120,8 +137,8 @@ contract BacteriaLabCore {
         );
     }
 
-    function getPlayerInfo(uint playerID) public view
-    returns(uint, address, uint, uint, uint, uint)
+    function getPlayerInfo(uint8 playerID) public view
+    returns(uint8, address, uint8, uint8, uint8, uint8)
     {
         return(
             gameManager.playerList[playerID].id,
@@ -131,5 +148,25 @@ contract BacteriaLabCore {
             gameManager.playerList[playerID].color,
             gameManager.playerList[playerID].colonyCount
         );
+    }
+
+    function getPlayerID(address playerAddress) public view returns(uint8) {
+        uint8 playerID = gameManager.playerIdLookUp[playerAddress];
+        return playerID;
+    }
+
+    function getNftTileInfo(uint8 nftID, uint8 tileID) public view returns(uint8) {
+        uint8 tileColor = gameManager.NFTCollection[nftID].contentMap[tileID];
+        return tileColor;
+    }
+
+    function getLatestGeneratedNFTID() public view returns(uint8) {
+        uint8 newNFTID;
+        if(gameManager.NFTCount > 0) {
+            newNFTID = gameManager.NFTCount - 1;
+        } else {
+            newNFTID = 0;
+        }
+        return newNFTID;
     }
 }
