@@ -13,7 +13,7 @@ library BacteriaLabNFT {
     function _createNFT(BacteriaLabGameManager.gameManagerType storage gameManager, address ownerAddress) public {
         uint8 nftID = gameManager.NFTCount;
         gameManager.NFTCollection[nftID].ownerAddress = ownerAddress;
-        for (uint8 i = 0; i < gameManager.totalColonyCount; i++) {
+        for (uint8 i = 0; i < 64; i++) {
             gameManager.NFTCollection[nftID].contentMap[i]=gameManager.map[i].ownerID;
         }
         gameManager.NFTCount += 1;
