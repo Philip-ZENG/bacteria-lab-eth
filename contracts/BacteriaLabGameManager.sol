@@ -69,8 +69,8 @@ library BacteriaLabGameManager {
     gameManager.mapWidth = gameInitVar.MAP_WIDTH;
     gameManager.mapLength = gameInitVar.MAP_LENGTH;
     gameManager.isInit = true;
-    gameManager.playerCount = 0;
-    gameManager.totalColonyCount = gameManager.mapWidth * gameManager.mapLength;
+    gameManager.playerCount = 1;
+    gameManager.totalColonyCount = 255;
   }
 
 
@@ -80,7 +80,7 @@ library BacteriaLabGameManager {
     gameManager.isPlayer[msg.sender] = true;
     gameManager.playerIdLookUp[msg.sender] = playerID;
 
-    uint8 initialColonyID = generateRandomNumber3(gameManager.totalColonyCount);
+    uint8 initialColonyID = generateRandomNumber3(64);
     // Check if a collision happens, if collision happens, increase id by 1
     while (gameManager.colonyOwned[initialColonyID]) {
       initialColonyID += 1;
@@ -157,7 +157,7 @@ library BacteriaLabGameManager {
   }
 
 function _updateState(gameManagerType storage gameManager) public {
-    for(uint8 playerID = 0; playerID < gameManager.playerCount; playerID+=1) {
+    for(uint8 playerID = 1; playerID <= gameManager.playerCount; playerID+=1) {
       gameManager.playerList[playerID].nutrition += gameManager.playerList[playerID].absorptionRate;
     }
   }
@@ -169,7 +169,7 @@ function _updateState(gameManagerType storage gameManager) public {
   function _pickWinner(gameManagerType storage gameManager) public view returns (address) {
     uint8 largestColonyCount = 0;
     uint8 winnerID = 0;
-    for(uint8 id = 0; id < gameManager.playerCount; id+=1) {
+    for(uint8 id = 1; id <= gameManager.playerCount; id+=1) {
       if (largestColonyCount < gameManager.playerList[id].colonyCount) {
         largestColonyCount = gameManager.playerList[id].colonyCount;
         winnerID = id;

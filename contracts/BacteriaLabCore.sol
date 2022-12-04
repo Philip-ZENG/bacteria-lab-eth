@@ -18,16 +18,16 @@ contract BacteriaLabCore {
         gameManager.adminAddress = creator;
 
         BacteriaLabGameManager.setGameInitVariable({
-        gameInitVar: gameInitVar, 
-        mapWidth: 8,
-        mapLength: 8,
-        playerInitialNutrition: 100,
-        colonyMaxAbsorptionRate: 20,
-        colonyMaxDefenseNutrition: 50,
-        colonyMaxOccupyNutrition: 20,
-        nutritionAbsorptionRandomSeed: 13,
-        defenseNutritionRandomSeed: 37,
-        occupyNutritionRandomSeed: 53
+            gameInitVar: gameInitVar, 
+            mapWidth: 16,
+            mapLength: 16,
+            playerInitialNutrition: 100,
+            colonyMaxAbsorptionRate: 20,
+            colonyMaxDefenseNutrition: 50,
+            colonyMaxOccupyNutrition: 20,
+            nutritionAbsorptionRandomSeed: 13,
+            defenseNutritionRandomSeed: 37,
+            occupyNutritionRandomSeed: 53
         });
     }
 
